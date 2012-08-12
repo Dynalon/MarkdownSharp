@@ -88,6 +88,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace MarkdownSharp
 {
@@ -494,21 +495,33 @@ namespace MarkdownSharp
         /// Reusable pattern to match balanced (parens). See Friedl's 
         /// "Mastering Regular Expressions", 2nd Ed., pp. 328-331.
         /// </summary>
-        private static string GetNestedParensPattern()
+        private static string GetNestedParensPattern(bool allowWhitespace = false)
         {
+			string ext = "";
+			string alw= "";
+			if (!allowWhitespace)
+				alw=@"\s";
+			else {
+				ext = @"(\s?="")";
+			}
+
             // in other words (this) and (this(also)) and (this(also(too)))
             // up to _nestDepth
             if (_nestedParensPattern == null)
                 _nestedParensPattern =
-                    RepeatString(@"
+                    RepeatString(string.Format(@"
                     (?>              # Atomic matching
-                       [^()\s]+      # Anything other than parens or whitespace
+						[^()(\s?=(""|\))]      # Anything other than parens or whitespace
                      |
                        \(
-                           ", _nestDepth) + RepeatString(
+                           ", alw, ext), _nestDepth) + RepeatString(
                     @" \)
-                    )*"
+					)*"
                     , _nestDepth);
+				_nestedParensPattern = @"
+					 (?>              # Atomic matching
+						[^)]+(?:\s?="")?     # Anything other than parens or whitespace
+				)*"; 
             return _nestedParensPattern;
         }
 
@@ -792,7 +805,7 @@ namespace MarkdownSharp
                         [ ]*                # ignore any spaces between closing quote and )
                         )?                  # title is optional
                     \)
-                )", GetNestedBracketsPattern(), GetNestedParensPattern()),
+                )", GetNestedBracketsPattern(), GetNestedParensPattern(true)),
                   RegexOptions.Singleline | RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
 
         private static Regex _anchorRefShortcut = new Regex(@"
@@ -895,8 +908,9 @@ namespace MarkdownSharp
         private string AnchorInlineEvaluator(Match match)
         {
             string linkText = match.Groups[2].Value;
-            string url = match.Groups[3].Value;
-            string title = match.Groups[6].Value;
+            string tmpurl = match.Groups[3].Value;
+			string title = Regex.Match (tmpurl,"[^\"]*\"(.*)\"[^\"]*").Groups[1].Value;
+			string url = new Regex("(?<=\")(.*)*(?=\")").Replace (tmpurl, "").Replace (@" """"","");
             string result;
 
             url = EncodeProblemUrlChars(url);
@@ -1013,9 +1027,11 @@ namespace MarkdownSharp
         private string ImageInlineEvaluator(Match match)
         {
             string alt = match.Groups[2].Value;
-            string url = match.Groups[3].Value;
-            string title = match.Groups[6].Value;
+            string tmpurl = match.Groups[3].Value;
+			string title = Regex.Match (tmpurl,"[^\"]*\"(.*)\"[^\"]*").Groups[1].Value;
+			string url = new Regex("(?<=\")(.*)*(?=\")").Replace (tmpurl, "").Replace (@" """"","");
             string result;
+
 
             alt = alt.Replace("\"", "&quot;");
             title = title.Replace("\"", "&quot;");
