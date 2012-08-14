@@ -1,4 +1,6 @@
 using System;
+using MarkdownSharp;
+using System.IO;
 
 namespace Runner
 {
@@ -6,7 +8,10 @@ namespace Runner
 	{
 		public static void Main (string[] args)
 		{
-			Console.WriteLine ("Hello World!");
+			Markdown md = new Markdown ();
+			var markup = File.ReadAllText (args[0]);
+			var html = md.Transform (markup);
+			Console.WriteLine (html);
 		}
 	}
 }

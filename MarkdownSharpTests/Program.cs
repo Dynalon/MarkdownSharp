@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace MarkdownSharpTests
 {
@@ -251,7 +252,8 @@ namespace MarkdownSharpTests
         /// </summary>
         static void Benchmark()
         {
-
+			Thread.Sleep (10000);
+			return;
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine(@"MarkdownSharp v" + new MarkdownSharp.Markdown().Version + " benchmark, takes 10 ~ 30 seconds...");

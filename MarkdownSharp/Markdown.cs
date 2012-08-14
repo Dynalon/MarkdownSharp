@@ -497,31 +497,25 @@ namespace MarkdownSharp
         /// </summary>
         private static string GetNestedParensPattern(bool allowWhitespace = false)
         {
-			string ext = "";
-			string alw= "";
-			if (!allowWhitespace)
-				alw=@"\s";
-			else {
-				ext = @"(\s?="")";
-			}
-
             // in other words (this) and (this(also)) and (this(also(too)))
             // up to _nestDepth
             if (_nestedParensPattern == null)
                 _nestedParensPattern =
-                    RepeatString(string.Format(@"
+                    RepeatString(@"
                     (?>              # Atomic matching
-						[^()(\s?=(""|\))]      # Anything other than parens or whitespace
+						[^()\]+      # Anything other than parens or whitespace
                      |
                        \(
-                           ", alw, ext), _nestDepth) + RepeatString(
+                           ", _nestDepth) + RepeatString(
                     @" \)
 					)*"
                     , _nestDepth);
+			if (allowWhitespace) {
 				_nestedParensPattern = @"
 					 (?>              # Atomic matching
 						[^)]+(?:\s?="")?     # Anything other than parens or whitespace
 				)*"; 
+			}
             return _nestedParensPattern;
         }
 
