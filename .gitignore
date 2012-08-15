@@ -1,0 +1,10 @@
+bin/*
+bin/
+*.dll
+*.dll.mdb
+*.exe
+*.exe.mdb
+*.userprefs
+*.DS_Store
+*.AppleDouble
+*.actual.html
