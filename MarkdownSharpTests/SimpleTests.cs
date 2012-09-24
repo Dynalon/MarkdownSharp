@@ -208,5 +208,46 @@ namespace MarkdownSharpTests
 
             Assert.AreEqual(expected, actual);
         }
+	}
+
+	public class NonStandardMDTest : BaseTest
+	{
+		protected Markdown m;
+
+		[SetUp]
+		public void InitTest () {
+			m = new Markdown ();
+		}
+
+		[Test]
+		public void AutoNewLineListElements ()
+		{
+			// if AutoNewLine is enabled, list elements should not get a trailing <br/> element
+			string input = "* This is a list element";
+			string expected = "<ul>\n<li>This is a list element</li>\n</ul>\n";
+
+			m.AutoNewLines = true;
+			string actual = m.Transform(input);
+
+			Assert.AreEqual(expected, actual);
+		}
+		[Test]
+		public void AutoNewLines ()
+		{
+			// if AutoNewLine is enabled, list elements should not get a trailing <br/> element
+			string input = "This text has\na hard wrap.";
+			string expected_newlines = "<p>This text has<br />\na hard wrap.</p>\n";
+			string expected_standard = "<p>This text has\na hard wrap.</p>\n";
+
+			// test with enabled AutoNewLines which is not standard markdown compliant
+			m.AutoNewLines = true;
+			string actual = m.Transform(input);
+			Assert.AreEqual(expected_newlines, actual);
+
+			// test using standard Markdown
+			m.AutoNewLines = false;
+			actual = m.Transform(input);
+			Assert.AreEqual(expected_standard, actual);
+		}
     }
 }

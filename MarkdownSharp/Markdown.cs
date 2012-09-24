@@ -396,7 +396,7 @@ namespace MarkdownSharp
         /// <summary>
         /// Perform transformations that occur *within* block-level tags like paragraphs, headers, and list items.
         /// </summary>
-        private string RunSpanGamut(string text)
+        private string RunSpanGamut(string text, bool isListContext = false)
         {
             text = DoCodeSpans(text);
             text = EscapeSpecialCharsWithinTagAttributes(text);
@@ -412,7 +412,11 @@ namespace MarkdownSharp
 
             text = EncodeAmpsAndAngles(text);
             text = DoItalicsAndBold(text);
-            text = DoHardBreaks(text);
+            if (!isListContext) {
+                // do not add hard breaks for list elements,
+                // as we dont want code like <li>Element1</li><br/>
+                text = DoHardBreaks(text);
+            }
 
             return text;
         }
@@ -1244,7 +1248,7 @@ namespace MarkdownSharp
                 // recursion for sub-lists
                 item = DoLists(Outdent(item));
                 item = item.TrimEnd('\n');
-                item = RunSpanGamut(item);
+                item = RunSpanGamut(item, isListContext: true);
             }
 
             return string.Format("<li>{0}</li>\n", item);
