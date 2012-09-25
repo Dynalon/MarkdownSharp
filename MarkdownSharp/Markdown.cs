@@ -365,12 +365,15 @@ namespace MarkdownSharp
 			var pattern = @"^\S+.*(?<spaces>[^\S\r\n]{4,}|\t{2,})(.*)$";
 			var bumperRegex = new Regex (pattern, RegexOptions.Multiline);
 			text = bumperRegex.Replace (text, (Match m) => {
-				var r = new Regex (@"(?<spaces>[^\S\r\n]{4,}|\t{2,})");
-				var ret = r.Replace (m.ToString (), (Match ma) => {
-					var parts = m.ToString ().Split (new string[] { ma.Groups["spaces"].Value }, 2, StringSplitOptions.None);
-					var ret2 = parts[0] + " <span class='bumper'> " + parts[1] + "</span>";
-					return ret2;
-				},1);
+				var match = m.ToString ();
+				string[] parts;
+				if (match.Contains ("    ")) {
+					parts = m.ToString ().Split (new string[] { "    " }, 2, StringSplitOptions.None);
+				}
+				else {
+					parts = m.ToString ().Split (new string[] { "\t\t" }, 2, StringSplitOptions.None);
+				}
+				var ret = parts[0] + "<span class='bumper'>" + parts[1] + "</span>";
 				return ret;
 			});
 

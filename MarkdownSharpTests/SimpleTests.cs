@@ -264,8 +264,8 @@ namespace MarkdownSharpTests
 		[Test]
 		public void ReplaceOverlongSpacesBySpan ()
 		{
-			string input = "This text has           \t\t\t overlong spaces.\n";
-			string expected= "<p>This text has<span class='bumper'></span>overlong spaces.</p>\n";
+			string input = "This text has     overlong spaces.\n";
+			string expected= "<p>This text has<span class='bumper'>overlong spaces.</span></p>\n";
 
 			string actual = m.Transform (input);
 			Assert.AreEqual (expected, actual);
