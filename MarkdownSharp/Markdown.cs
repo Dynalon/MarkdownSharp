@@ -124,6 +124,10 @@ namespace MarkdownSharp
         /// WARNING: this is a significant deviation from the markdown spec
         /// </summary>
         public bool StrictBoldItalic { get; set; }
+		// when true, a set of 4 consecutive spaces or 2consecutive tabs within a single line
+		// are replaced by a special <span class='bumper'></span> element
+        public bool InsertBumper { get; set; }
+
     }
 
 
@@ -356,6 +360,19 @@ namespace MarkdownSharp
             if (String.IsNullOrEmpty(text)) return "";
 
             Setup();
+
+
+			var pattern = @"^\S+.*(?<spaces>[^\S\r\n]{4,}|\t{2,})(.*)$";
+			var bumperRegex = new Regex (pattern, RegexOptions.Multiline);
+			text = bumperRegex.Replace (text, (Match m) => {
+				var r = new Regex (@"(?<spaces>[^\S\r\n]{4,}|\t{2,})");
+				var ret = r.Replace (m.ToString (), (Match ma) => {
+					var parts = m.ToString ().Split (new string[] { ma.Groups["spaces"].Value }, 2, StringSplitOptions.None);
+					var ret2 = parts[0] + " <span class='bumper'> " + parts[1] + "</span>";
+					return ret2;
+				},1);
+				return ret;
+			});
 
             text = Normalize(text);
            
@@ -733,7 +750,7 @@ namespace MarkdownSharp
         }
 
         private static Regex _htmlTokens = new Regex(@"
-            (<!(?:--.*?--\s*)+>)|        # match <!-- foo -->
+            (<!(?:--.*?--\s+)+>)|        # match <!-- foo -->
             (<\?.*?\?>)|                 # match <?foo?> " +
             RepeatString(@" 
             (<[A-Za-z\/!$](?:[^<>]|", _nestDepth) + RepeatString(@")*>)", _nestDepth) +
