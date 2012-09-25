@@ -373,7 +373,7 @@ namespace MarkdownSharp
 				else {
 					parts = m.ToString ().Split (new string[] { "\t\t" }, 2, StringSplitOptions.None);
 				}
-				var ret = parts[0] + "<span class='bumper'>" + parts[1] + "</span>";
+				var ret = parts[0] + "<i class='bumper'>" + parts[1] + "</i>";
 				return ret;
 			});
 
