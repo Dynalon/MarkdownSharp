@@ -362,7 +362,7 @@ namespace MarkdownSharp
             Setup();
 
 
-			var pattern = @"^\S+.*(?<spaces>[^\S\r\n]{4,}|\t{2,})(.*)$";
+			var pattern = @"^.*\S+.*(?<spaces>[^\S\r\n]{4,}|\t{2,})(.*)$";
 			var bumperRegex = new Regex (pattern, RegexOptions.Multiline);
 			text = bumperRegex.Replace (text, (Match m) => {
 				var match = m.ToString ();
