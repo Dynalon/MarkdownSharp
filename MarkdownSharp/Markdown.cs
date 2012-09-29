@@ -22,6 +22,7 @@
  * and let the community contribute to and improve MarkdownSharp.
  * 
  */
+using System.Diagnostics;
 
 #region Copyright and license
 
@@ -124,6 +125,10 @@ namespace MarkdownSharp
         /// WARNING: this is a significant deviation from the markdown spec
         /// </summary>
         public bool StrictBoldItalic { get; set; }
+		// when true, a set of 4 consecutive spaces or 2consecutive tabs within a single line
+		// are replaced by a special <span class='bumper'></span> element
+        public bool InsertBumper { get; set; }
+
     }
 
 
@@ -358,8 +363,11 @@ namespace MarkdownSharp
             Setup();
 
             text = Normalize(text);
-           
+			text = DoCodeBlocks (text);
             text = HashHTMLBlocks(text);
+
+			text = DoAddBumper (text);
+
             text = StripLinkDefinitions(text);
             text = RunBlockGamut(text);
             text = Unescape(text);
@@ -368,7 +376,22 @@ namespace MarkdownSharp
 
             return text + "\n";
         }
+		/// <summary>
+		/// Surrounds all text right of 4 consecutive spaces (or 2 tabs) with a span tag. Intended for adding
+		/// a float:right environment, to allow simple 2 column layouts. This is an extension to MD and is non-standard.
+		/// </summary>
+		protected string DoAddBumper (string text)
+		{
+			var pattern = @"^(.*)(?> {4,})(.*)$";
+			var bumperRegex = new Regex (pattern, RegexOptions.Multiline | RegexOptions.Compiled);
 
+			return bumperRegex.Replace (text, (Match m) => {
+				string[] parts;
+				parts = m.ToString ().Split (new string[] { "    " }, 2, StringSplitOptions.None);
+				var ret = parts[0] + "<span class='bumper'>" + parts[1] + "</span>";
+				return ret;
+			});
+		}
 
         /// <summary>
         /// Perform transformations that form block-level tags like paragraphs, headers, and list items.
@@ -378,7 +401,7 @@ namespace MarkdownSharp
             text = DoHeaders(text);
             text = DoHorizontalRules(text);
             text = DoLists(text);
-            text = DoCodeBlocks(text);
+
             text = DoBlockQuotes(text);
 
             // We already ran HashHTMLBlocks() before, in Markdown(), but that
@@ -733,7 +756,7 @@ namespace MarkdownSharp
         }
 
         private static Regex _htmlTokens = new Regex(@"
-            (<!(?:--.*?--\s*)+>)|        # match <!-- foo -->
+            (<!(?:--.*?--\s+)+>)|        # match <!-- foo -->
             (<\?.*?\?>)|                 # match <?foo?> " +
             RepeatString(@" 
             (<[A-Za-z\/!$](?:[^<>]|", _nestDepth) + RepeatString(@")*>)", _nestDepth) +
@@ -1266,12 +1289,16 @@ namespace MarkdownSharp
                     ((?=^[ ]{{0,{0}}}\S)|\Z) # Lookahead for non-space at line-start, or end of doc",
                     _tabWidth), RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
 
+
+		private static Regex _backtickCodeBlock = new Regex (@"```(?<code>.*?)```", RegexOptions.Singleline | RegexOptions.Compiled);
+
         /// <summary>
         /// /// Turn Markdown 4-space indented code into HTML pre code blocks
         /// </summary>
         private string DoCodeBlocks(string text)
         {
-            text = _codeBlock.Replace(text, new MatchEvaluator(CodeBlockEvaluator));
+//            text = _codeBlock.Replace(text, new MatchEvaluator(CodeBlockEvaluator));
+            text = _backtickCodeBlock.Replace(text, new MatchEvaluator(BacktickCodeBlockEvaluator));
             return text;
         }
 
@@ -1285,9 +1312,17 @@ namespace MarkdownSharp
             return string.Concat("\n\n<pre><code>", codeBlock, "\n</code></pre>\n\n");
         }
 
+		private string BacktickCodeBlockEvaluator(Match match)
+		{
+			string codeBlock = match.Groups["code"].Value;
+            codeBlock = EncodeCode(codeBlock);
+            codeBlock = _newlinesLeadingTrailing.Replace(codeBlock, "");
+            return string.Concat("\n\n<pre><code>", codeBlock, "\n</code></pre>\n\n");
+		}
+
         private static Regex _codeSpan = new Regex(@"
                     (?<!\\)   # Character before opening ` can't be a backslash
-                    (`+)      # $1 = Opening run of `
+                    (`{1,2})      # $1 = Opening run of `
                     (.+?)     # $2 = The code block
                     (?<!`)
                     \1

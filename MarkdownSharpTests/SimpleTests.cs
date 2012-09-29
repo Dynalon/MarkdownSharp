@@ -186,6 +186,18 @@ namespace MarkdownSharpTests
 
             Assert.AreEqual(expected, actual);
         }
+		[Test]
+		public void HtmlComments()
+		{
+			// currently fails due to a bug in the parser when a hyphen "-" appears after a html comment
+			// it doesnt matter if you put elements between the comment and the hyphen
+			string input = "<!-- [Google](http://google.com/) --> -";
+			string expected = "<p><!-- [Google](http://google.com/) -->-</p>";
+
+			string actual = m.Transform(input);
+
+			Assert.AreEqual(expected, actual);
+		}
 
         [Test]
         public void Escaping()
@@ -248,6 +260,15 @@ namespace MarkdownSharpTests
 			m.AutoNewLines = false;
 			actual = m.Transform(input);
 			Assert.AreEqual(expected_standard, actual);
+		}
+		[Test]
+		public void ReplaceOverlongSpacesBySpan ()
+		{
+			string input = "This text has     overlong spaces.\n";
+			string expected= "<p>This text has<span class='bumper'>overlong spaces.</span></p>\n";
+
+			string actual = m.Transform (input);
+			Assert.AreEqual (expected, actual);
 		}
     }
 }
