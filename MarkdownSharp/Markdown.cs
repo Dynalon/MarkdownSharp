@@ -363,10 +363,8 @@ namespace MarkdownSharp
             Setup();
 
             text = Normalize(text);
-			text = DoCodeBlocks (text);
+            text = DoCodeBlocks(text);
             text = HashHTMLBlocks(text);
-
-			text = DoAddBumper (text);
 
             text = StripLinkDefinitions(text);
             text = RunBlockGamut(text);
@@ -404,6 +402,7 @@ namespace MarkdownSharp
 
             text = DoBlockQuotes(text);
 
+            text = DoAddBumper (text);
             // We already ran HashHTMLBlocks() before, in Markdown(), but that
             // was to escape raw HTML in the original Markdown source. This time,
             // we're escaping the markup we've just created, so that we don't wrap
@@ -1297,8 +1296,13 @@ namespace MarkdownSharp
         /// </summary>
         private string DoCodeBlocks(string text)
         {
-//            text = _codeBlock.Replace(text, new MatchEvaluator(CodeBlockEvaluator));
+            // GitHub flavoured Markdown, three backticks mark the beginning of a block: ```
             text = _backtickCodeBlock.Replace(text, new MatchEvaluator(BacktickCodeBlockEvaluator));
+            // hash the block away
+            text = HashHTMLBlocks (text);
+
+            // process standard markdown indendented code blocks
+            text = _codeBlock.Replace(text, new MatchEvaluator(CodeBlockEvaluator));
             return text;
         }
 
