@@ -396,11 +396,14 @@ namespace MarkdownSharp
         /// </summary>
         private string RunBlockGamut(string text)
         {
+            text = DoBlockQuotes(text);
+			// save those blockquotes from DoAddBumper
+			text = HashHTMLBlocks (text);
+
             text = DoHeaders(text);
             text = DoHorizontalRules(text);
             text = DoLists(text);
 
-            text = DoBlockQuotes(text);
 
             text = DoAddBumper (text);
             // We already ran HashHTMLBlocks() before, in Markdown(), but that

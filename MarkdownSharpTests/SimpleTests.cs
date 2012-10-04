@@ -264,8 +264,19 @@ namespace MarkdownSharpTests
 		[Test]
 		public void ReplaceOverlongSpacesBySpan ()
 		{
-			string input = "This text has     overlong spaces.\n";
+			string input = "This text has    overlong spaces.\n";
 			string expected= "<p>This text has<span class='bumper'>overlong spaces.</span></p>\n";
+
+			string actual = m.Transform (input);
+			Assert.AreEqual (expected, actual);
+		}
+		[Test]
+		public void GitHubLikeCodeBlocks ()
+		{
+			// test if codeblock with three backticks are correctly encoded
+			// note that it is correct that the first linebreak after ``` gets removed
+			string input = "```\nCodeBlock\n```";
+			string expected = "<pre><code>CodeBlock\n</code></pre>\n";
 
 			string actual = m.Transform (input);
 			Assert.AreEqual (expected, actual);
