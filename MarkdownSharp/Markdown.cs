@@ -933,7 +933,10 @@ namespace MarkdownSharp
             string linkText = match.Groups[2].Value;
             string tmpurl = match.Groups[3].Value;
 			string title = Regex.Match (tmpurl,"[^\"]*\"(.*)\"[^\"]*").Groups[1].Value;
-			string url = new Regex("(?<=\")(.*)*(?=\")").Replace (tmpurl, "").Replace (@" """"","");
+
+			// this regex is too slow
+			//string url = new Regex("(?<=\")(.*)*(?=\")").Replace (tmpurl, "").Replace (@" """"","");
+			string url = tmpurl.Split ('"').First ().Trim ();
             string result;
 
             url = EncodeProblemUrlChars(url);
@@ -1052,7 +1055,10 @@ namespace MarkdownSharp
             string alt = match.Groups[2].Value;
             string tmpurl = match.Groups[3].Value;
 			string title = Regex.Match (tmpurl,"[^\"]*\"(.*)\"[^\"]*").Groups[1].Value;
-			string url = new Regex("(?<=\")(.*)*(?=\")").Replace (tmpurl, "").Replace (@" """"","");
+			// for some reason this regex is very slow
+			// also due to a bug with parens, if only one " is given, url extraction will fail
+			//string url = new Regex("(?<=\")(.*)*(?=\")").Replace (tmpurl, "").Replace (@" """"","");
+			string url = tmpurl.Split ('"').First ().Trim ();
             string result;
 
 
